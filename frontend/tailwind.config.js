@@ -1,0 +1,47 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  theme: {
+    extend: {
+      colors: {
+        primary: '#004ac6',
+        'primary-container': '#2563eb',
+        'on-primary': '#ffffff',
+        'on-primary-container': '#eeefff',
+        secondary: '#5c5f61',
+        'secondary-container': '#e0e3e5',
+        'on-secondary': '#ffffff',
+        tertiary: '#46566c',
+        'tertiary-container': '#5e6e85',
+        surface: '#faf8ff',
+        'surface-dim': '#d2d9f4',
+        'surface-bright': '#faf8ff',
+        'surface-container-lowest': '#ffffff',
+        'surface-container-low': '#f2f3ff',
+        'surface-container': '#eaedff',
+        'surface-container-high': '#e2e7ff',
+        'surface-container-highest': '#dae2fd',
+        'surface-variant': '#dae2fd',
+        'on-surface': '#131b2e',
+        'on-surface-variant': '#434655',
+        outline: '#737686',
+        'outline-variant': '#c3c6d7',
+        error: '#ba1a1a',
+        'error-container': '#ffdad6',
+        'on-error': '#ffffff',
+        'inverse-surface': '#283044',
+        'inverse-on-surface': '#eef0ff',
+        'inverse-primary': '#b4c5ff',
+      },
+      fontFamily: {
+        headline: ['Manrope', 'sans-serif'],
+        body: ['Inter', 'sans-serif'],
+      },
+      boxShadow: {
+        ambient: '0 0 32px rgba(19, 27, 46, 0.06)',
+        'ambient-lg': '0 0 48px rgba(19, 27, 46, 0.08)',
+      },
+    },
+  },
+  plugins: [],
+};
