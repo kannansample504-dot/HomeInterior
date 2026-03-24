@@ -100,6 +100,16 @@ export interface FAQ {
   answer: string;
 }
 
+export interface PortfolioProject {
+  id: number;
+  title: string;
+  city: string;
+  style: string;
+  image_url: string;
+  is_visible: boolean;
+  order: number;
+}
+
 // ── Pricing ──
 export interface PricingItem {
   id: number;

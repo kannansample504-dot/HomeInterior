@@ -5,7 +5,7 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import CompanyProfile, CMSContent, SEOMeta, Testimonial, FAQ
+from .models import CompanyProfile, CMSContent, SEOMeta, Testimonial, FAQ, PortfolioProject
 from .serializers import (
     CompanyProfileSerializer,
     CMSContentSerializer,
@@ -13,6 +13,7 @@ from .serializers import (
     SEOMetaSerializer,
     TestimonialSerializer,
     FAQSerializer,
+    PortfolioProjectSerializer,
 )
 
 
@@ -34,7 +35,7 @@ class CompanyProfileView(APIView):
         serializer = CompanyProfileSerializer(profile, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        cache.delete_pattern("*company*")
+        cache.clear()
         return Response(serializer.data)
 
 
@@ -68,7 +69,7 @@ class CMSContentView(APIView):
                     "updated_by": request.user,
                 },
             )
-        cache.delete_pattern(f"*{page_slug}*")
+        cache.clear()
         items = CMSContent.objects.filter(page_slug=page_slug)
         return Response({item.field_key: item.field_value for item in items})
 
@@ -91,7 +92,7 @@ class SEOMetaView(APIView):
         serializer = SEOMetaSerializer(seo, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        cache.delete_pattern(f"*seo*{slug}*")
+        cache.clear()
         return Response(serializer.data)
 
 
@@ -119,3 +120,52 @@ class FAQListView(generics.ListAPIView):
     @method_decorator(cache_page(300))
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
+
+
+# ── Portfolio Projects ────────────────────────────────────
+
+class PortfolioProjectListView(generics.ListAPIView):
+    """Public endpoint — returns visible projects ordered by order field."""
+    permission_classes = [permissions.AllowAny]
+    serializer_class = PortfolioProjectSerializer
+    queryset = PortfolioProject.objects.filter(is_visible=True)
+    pagination_class = None
+
+
+class PortfolioProjectAdminView(APIView):
+    """Admin CRUD for portfolio projects."""
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request):
+        projects = PortfolioProject.objects.all()
+        return Response(PortfolioProjectSerializer(projects, many=True).data)
+
+    def post(self, request):
+        serializer = PortfolioProjectSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        cache.clear()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class PortfolioProjectDetailView(APIView):
+    """Admin update/delete for a single portfolio project."""
+    permission_classes = [permissions.IsAdminUser]
+
+    def get_object(self, pk):
+        from django.shortcuts import get_object_or_404
+        return get_object_or_404(PortfolioProject, pk=pk)
+
+    def patch(self, request, pk):
+        project = self.get_object(pk)
+        serializer = PortfolioProjectSerializer(project, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        cache.clear()
+        return Response(serializer.data)
+
+    def delete(self, request, pk):
+        project = self.get_object(pk)
+        project.delete()
+        cache.clear()
+        return Response(status=status.HTTP_204_NO_CONTENT)

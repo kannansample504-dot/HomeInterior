@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import UserAvatar from '../common/UserAvatar';
 
 const NAV_LINKS = [
   { to: '/', label: 'Home' },
@@ -45,9 +46,9 @@ export default function Navbar() {
             <div className="relative">
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-surface-container-low hover:bg-surface-container transition-colors"
+                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-surface-container-low hover:bg-surface-container transition-colors"
               >
-                <span className="material-symbols-outlined text-primary text-xl">person</span>
+                {user && <UserAvatar userId={user.id} name={user.name} email={user.email} size={28} />}
                 <span className="text-sm font-semibold text-on-surface">{user?.name}</span>
                 <span className="material-symbols-outlined text-sm text-secondary">expand_more</span>
               </button>

@@ -8,10 +8,10 @@ export class EstimationRecord {
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user: User | null;
 
   @Column({ name: 'user_id', nullable: true })
-  userId: string;
+  userId: string | null;
 
   @Column({ name: 'guest_email', default: '' })
   guestEmail: string;

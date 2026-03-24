@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { cmsApi } from '../../../../api/cms.api';
 import type { CompanyProfile } from '../../../../types';
 
@@ -11,10 +11,18 @@ export default function CompanyTab() {
   const [profile, setProfile] = useState<CompanyProfile>(EMPTY);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
+  const msgTimer = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
     cmsApi.getCompanyProfile().then(r => setProfile(r.data)).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (!msg) return;
+    clearTimeout(msgTimer.current);
+    msgTimer.current = setTimeout(() => setMsg(''), 4000);
+    return () => clearTimeout(msgTimer.current);
+  }, [msg]);
 
   const update = (key: keyof CompanyProfile, value: any) => {
     setProfile(prev => ({ ...prev, [key]: value }));
@@ -102,7 +110,7 @@ export default function CompanyTab() {
           className="bg-primary-container text-on-primary px-8 py-3 rounded-xl font-semibold text-sm hover:bg-primary disabled:opacity-50">
           {saving ? 'Saving...' : 'Save Company Profile'}
         </button>
-        {msg && <span className={`text-sm font-medium ${msg.includes('updated') ? 'text-emerald-600' : 'text-error'}`}>{msg}</span>}
+        {msg && <span className={`text-sm font-medium ${msg.includes('updated') ? 'text-primary' : 'text-error'}`}>{msg}</span>}
       </div>
     </div>
   );

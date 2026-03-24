@@ -1,8 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryColumn, Column, BeforeInsert } from 'typeorm';
+import { v4 as uuidv4 } from 'uuid';
 
 @Entity('users')
 export class User {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryColumn('uuid')
   id: string;
 
   @Column({ unique: true })
@@ -37,4 +38,11 @@ export class User {
 
   @Column({ name: 'last_login', type: 'timestamptz', nullable: true })
   lastLogin: Date;
+
+  @BeforeInsert()
+  generateId() {
+    if (!this.id) {
+      this.id = uuidv4();
+    }
+  }
 }

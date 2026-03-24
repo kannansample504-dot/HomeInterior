@@ -21,14 +21,19 @@ export class UsersService {
   async create(data: Partial<User>): Promise<User> {
     const user = this.usersRepo.create({
       ...data,
-      email: data.email.toLowerCase(),
+      email: data.email!.toLowerCase(),
+      isActive: true,
+      isStaff: false,
+      isSuperuser: false,
+      role: data.role || 'user',
+      dateJoined: new Date(),
     });
     return this.usersRepo.save(user);
   }
 
   async update(id: string, data: Partial<User>): Promise<User> {
     await this.usersRepo.update(id, data);
-    return this.findById(id);
+    return this.findById(id) as Promise<User>;
   }
 
   async updateLastLogin(id: string): Promise<void> {

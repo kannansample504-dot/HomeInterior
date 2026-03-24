@@ -36,11 +36,20 @@ class SaveEstimateView(APIView):
         serializer.is_valid(raise_exception=True)
 
         data = serializer.validated_data
+
+        if not request.user.is_authenticated:
+            guest_email = data.get("guest_email", "").strip()
+            if not guest_email:
+                return Response(
+                    {"guest_email": ["This field is required for guest saves."]},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
         result = calculate_estimate(rooms=data["rooms"], tier=data["tier"])
 
         record = EstimationRecord.objects.create(
             user=request.user if request.user.is_authenticated else None,
-            guest_email=data.get("guest_email", ""),
+            guest_email=data.get("guest_email", "").strip(),
             project_type=data["project_type"],
             property_type=data["property_type"],
             style=data.get("style", ""),

@@ -3,6 +3,7 @@ from django.utils import timezone
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -78,7 +79,7 @@ class LogoutView(APIView):
                 token = RefreshToken(refresh_token)
                 token.blacklist()
             return Response({"detail": "Successfully logged out."}, status=status.HTTP_200_OK)
-        except Exception:
+        except TokenError:
             return Response({"detail": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
 
 

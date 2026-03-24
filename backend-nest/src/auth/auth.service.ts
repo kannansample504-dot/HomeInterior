@@ -29,7 +29,10 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(dto.password, 12);
     const user = await this.usersService.create({
-      ...dto,
+      email: dto.email,
+      name: dto.name,
+      phone: dto.phone || '',
+      city: dto.city || '',
       password: hashedPassword,
     });
 

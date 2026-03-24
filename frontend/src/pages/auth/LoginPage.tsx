@@ -9,7 +9,7 @@ export default function LoginPage() {
   const { login, register } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = (location.state as any)?.from?.pathname || '/dashboard';
+  const from = (location.state as any)?.from?.pathname || null;
 
   // Login form
   const [loginEmail, setLoginEmail] = useState('');
@@ -29,8 +29,10 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      await login(loginEmail, loginPassword);
-      navigate(from, { replace: true });
+      const loggedInUser = await login(loginEmail, loginPassword);
+      const isAdminUser = loggedInUser.role === 'admin' || loggedInUser.role === 'staff';
+      const destination = from || (isAdminUser ? '/admin' : '/dashboard');
+      navigate(destination, { replace: true });
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Login failed');
     } finally {

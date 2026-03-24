@@ -14,9 +14,9 @@ export default function StatsTab() {
 
   const cards = [
     { label: 'Total Estimates', value: stats.total_estimates, icon: 'receipt_long', color: 'bg-primary' },
-    { label: 'Avg Estimate Value', value: formatINR(stats.avg_estimate_value), icon: 'trending_up', color: 'bg-emerald-600' },
-    { label: 'Active Users', value: stats.active_users, icon: 'group', color: 'bg-amber-600' },
-    { label: 'Total Revenue', value: formatINR(stats.total_revenue), icon: 'payments', color: 'bg-indigo-600' },
+    { label: 'Avg Estimate Value', value: formatINR(stats.avg_estimate_value), icon: 'trending_up', color: 'bg-tertiary' },
+    { label: 'Active Users', value: stats.active_users, icon: 'group', color: 'bg-secondary' },
+    { label: 'Total Revenue', value: formatINR(stats.total_revenue), icon: 'payments', color: 'bg-inverse-surface' },
   ];
 
   return (

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { cmsApi } from '../../api/cms.api';
-import type { Testimonial } from '../../types';
+import type { Testimonial, PortfolioProject } from '../../types';
 
 const SERVICES = [
   { icon: 'weekend', name: 'Living Room Design', desc: 'Complete living area transformation with furniture, lighting, and decor.', price: '1,50,000' },
@@ -12,6 +12,7 @@ const SERVICES = [
   { icon: 'desktop_windows', name: 'Office / Study Room', desc: 'Productive workspaces with ergonomic furniture and smart lighting.', price: '90,000' },
   { icon: 'home', name: 'Full Home Interior', desc: 'End-to-end interior design for your complete home, all rooms included.', price: '5,00,000' },
 ];
+
 
 const STEPS = [
   { num: '1', title: 'Select Your Rooms', desc: 'Tell us about your property and choose which rooms you want designed.' },
@@ -26,13 +27,24 @@ const STATS = [
   { num: '12+', label: 'Years Experience', icon: 'workspace_premium' },
 ];
 
+const FALLBACK_IMAGES = [
+  'https://images.unsplash.com/photo-1586023492125-27272f1144b3?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1555041469-fd26927b8d5a?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1618220179428-22790b461013?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1513584684374-8bab748fbf90?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1565538810643-b5bdb514cc4a?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=600&q=80',
+];
+
 export default function HomePage() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [content, setContent] = useState<Record<string, string>>({});
+  const [portfolio, setPortfolio] = useState<PortfolioProject[]>([]);
 
   useEffect(() => {
     cmsApi.getPageContent('home').then(r => setContent(r.data)).catch(() => {});
     cmsApi.getTestimonials().then(r => setTestimonials(r.data)).catch(() => {});
+    cmsApi.getProjects().then(r => setPortfolio(r.data)).catch(() => {});
   }, []);
 
   return (
@@ -62,8 +74,17 @@ export default function HomePage() {
             </div>
           </div>
           <div className="hidden lg:block">
-            <div className="w-full aspect-[4/3] rounded-3xl bg-white/10 flex items-center justify-center">
-              <span className="material-symbols-outlined text-white/20 text-[150px]">home</span>
+            <div className="w-full aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl ring-1 ring-white/20">
+              <img
+                src="https://images.unsplash.com/photo-1586023492125-27272f1144b3?auto=format&fit=crop&w=900&q=85"
+                alt="Beautiful interior design"
+                className="w-full h-full object-cover"
+                onError={e => {
+                  const img = e.target as HTMLImageElement;
+                  img.src = 'https://images.unsplash.com/photo-1555041469-fd26927b8d5a?auto=format&fit=crop&w=900&q=85';
+                  img.onerror = () => { img.style.display = 'none'; };
+                }}
+              />
             </div>
           </div>
         </div>
@@ -85,6 +106,43 @@ export default function HomePage() {
               <p className="text-primary font-bold text-sm mt-4">Starting from &#8377;{s.price}</p>
             </Link>
           ))}
+        </div>
+      </section>
+
+      {/* Portfolio */}
+      <section className="py-24 px-4 sm:px-8 max-w-7xl mx-auto">
+        <p className="text-xs uppercase tracking-widest text-primary font-bold text-center">Our Work</p>
+        <h2 className="font-headline text-3xl sm:text-4xl font-extrabold text-center text-on-surface mt-2">Recent Projects</h2>
+        <p className="text-secondary text-center mt-3">A glimpse of spaces we've transformed across India</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-16">
+          {portfolio.map((p, idx) => {
+            const fallback = FALLBACK_IMAGES[idx % FALLBACK_IMAGES.length];
+            const imgSrc = p.image_url || fallback;
+            return (
+              <Link to="/estimate" key={p.id} className="group rounded-3xl overflow-hidden bg-surface-container-lowest hover:shadow-ambient transition-all">
+                <div className="aspect-[4/3] overflow-hidden bg-surface-container-high relative flex items-center justify-center">
+                  <span className="material-symbols-outlined text-primary/20 text-[60px] absolute">home</span>
+                  <img
+                    src={imgSrc}
+                    alt={p.title}
+                    className="w-full h-full object-cover absolute inset-0 group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                    onError={e => {
+                      const img = e.target as HTMLImageElement;
+                      if (img.src !== fallback) { img.src = fallback; } else { img.style.display = 'none'; }
+                    }}
+                  />
+                </div>
+                <div className="p-5">
+                  <p className="font-headline font-bold text-on-surface">{p.title}</p>
+                  <div className="flex items-center justify-between mt-1">
+                    <p className="text-xs text-secondary">{p.city}</p>
+                    <span className="text-xs font-semibold text-primary bg-primary/5 px-3 py-1 rounded-full">{p.style}</span>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </section>
 
@@ -132,8 +190,10 @@ export default function HomePage() {
                 <p className="text-on-surface text-sm leading-relaxed mt-4">{t.content}</p>
                 <div className="h-[1px] bg-surface-container-low my-6" />
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center">
-                    <span className="material-symbols-outlined text-primary">person</span>
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-sm ${
+                    ['bg-blue-500','bg-violet-500','bg-emerald-500','bg-amber-500','bg-rose-500','bg-cyan-500'][t.id % 6]
+                  }`}>
+                    {t.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)}
                   </div>
                   <div>
                     <p className="font-bold text-sm text-on-surface">{t.name}</p>

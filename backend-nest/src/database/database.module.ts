@@ -12,7 +12,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         host: config.get('POSTGRES_HOST', 'localhost'),
         port: parseInt(config.get('POSTGRES_PORT', '5432'), 10),
         username: config.get('POSTGRES_USER', 'homeinterior'),
-        password: config.get('POSTGRES_PASSWORD', 'changeme'),
+        password: config.get('POSTGRES_PASSWORD', 'homeinterior123'),
         database: config.get('POSTGRES_DB', 'homeinterior'),
         autoLoadEntities: true,
         synchronize: false, // Django owns all migrations

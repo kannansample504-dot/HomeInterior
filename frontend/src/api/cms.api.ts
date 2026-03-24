@@ -1,5 +1,5 @@
 import api from './axiosInstances';
-import type { CompanyProfile, SEOMeta, Testimonial, FAQ } from '../types';
+import type { CompanyProfile, SEOMeta, Testimonial, FAQ, PortfolioProject } from '../types';
 
 export const cmsApi = {
   getCompanyProfile: () =>
@@ -25,4 +25,19 @@ export const cmsApi = {
 
   getFAQs: () =>
     api.get<FAQ[]>('/api/cms/faqs/'),
+
+  getProjects: () =>
+    api.get<PortfolioProject[]>('/api/cms/projects/'),
+
+  adminGetProjects: () =>
+    api.get<PortfolioProject[]>('/api/cms/admin/projects/'),
+
+  adminCreateProject: (data: Omit<PortfolioProject, 'id'>) =>
+    api.post<PortfolioProject>('/api/cms/admin/projects/', data),
+
+  adminUpdateProject: (id: number, data: Partial<PortfolioProject>) =>
+    api.patch<PortfolioProject>(`/api/cms/admin/projects/${id}/`, data),
+
+  adminDeleteProject: (id: number) =>
+    api.delete(`/api/cms/admin/projects/${id}/`),
 };

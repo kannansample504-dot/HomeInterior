@@ -48,7 +48,7 @@ class PricingMatrixView(APIView):
             except (PricingMatrix.DoesNotExist, KeyError):
                 continue
 
-        cache.delete_pattern("*pricing*")
+        cache.clear()
         items = PricingMatrix.objects.all()
         return Response(PricingMatrixSerializer(items, many=True).data)
 

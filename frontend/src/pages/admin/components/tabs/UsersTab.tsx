@@ -56,14 +56,14 @@ export default function UsersTab() {
                       <span className="px-2 py-1 rounded-lg bg-surface-container-high text-xs font-bold">{u.role}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-bold ${u.is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
+                      <span className={`px-2 py-1 rounded-full text-xs font-bold ${u.is_active ? 'bg-primary/10 text-primary' : 'bg-error-container text-error'}`}>
                         {u.is_active ? 'Active' : 'Inactive'}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-on-surface-variant">{new Date(u.date_joined).toLocaleDateString()}</td>
                     <td className="px-6 py-4 text-right">
                       <button onClick={() => toggleActive(u)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold ${u.is_active ? 'bg-red-50 text-red-700 hover:bg-red-100' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'}`}>
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold ${u.is_active ? 'bg-error-container text-error hover:bg-error-container/80' : 'bg-primary/10 text-primary hover:bg-primary/20'}`}>
                         {u.is_active ? 'Deactivate' : 'Activate'}
                       </button>
                     </td>

@@ -115,3 +115,22 @@ class FAQ(models.Model):
 
     def __str__(self):
         return self.question
+
+
+class PortfolioProject(models.Model):
+    """Recent projects shown on the home page portfolio section."""
+
+    title = models.CharField(max_length=255)
+    city = models.CharField(max_length=100, blank=True, default="")
+    style = models.CharField(max_length=100, blank=True, default="")
+    image_url = models.URLField(blank=True, default="")
+    is_visible = models.BooleanField(default=True)
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "portfolio_projects"
+        ordering = ["order", "-created_at"]
+
+    def __str__(self):
+        return f"{self.title} — {self.city}"

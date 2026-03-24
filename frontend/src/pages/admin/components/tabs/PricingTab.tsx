@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { pricingApi } from '../../../../api/pricing.api';
 import type { PricingItem, TaxConfig } from '../../../../types';
 
@@ -7,11 +7,19 @@ export default function PricingTab() {
   const [tax, setTax] = useState<TaxConfig>({ gst_percent: 18, labour_percent: 12 });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
+  const msgTimer = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
     pricingApi.getMatrix().then(r => setPricing(r.data.flat)).catch(() => {});
     pricingApi.getTaxConfig().then(r => setTax(r.data)).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (!msg) return;
+    clearTimeout(msgTimer.current);
+    msgTimer.current = setTimeout(() => setMsg(''), 4000);
+    return () => clearTimeout(msgTimer.current);
+  }, [msg]);
 
   const updatePrice = (id: number, value: string) => {
     setPricing(prev => prev.map(p => p.id === id ? { ...p, price_per_sqft: parseFloat(value) || 0 } : p));
@@ -97,7 +105,7 @@ export default function PricingTab() {
           className="bg-primary-container text-on-primary px-8 py-3 rounded-xl font-semibold text-sm hover:bg-primary disabled:opacity-50">
           {saving ? 'Saving...' : 'Save All Pricing'}
         </button>
-        {msg && <span className={`text-sm font-medium ${msg.includes('updated') ? 'text-emerald-600' : 'text-error'}`}>{msg}</span>}
+        {msg && <span className={`text-sm font-medium ${msg.includes('updated') ? 'text-primary' : 'text-error'}`}>{msg}</span>}
       </div>
     </div>
   );

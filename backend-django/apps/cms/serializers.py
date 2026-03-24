@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CompanyProfile, CMSContent, SEOMeta, Testimonial, FAQ
+from .models import CompanyProfile, CMSContent, SEOMeta, Testimonial, FAQ, PortfolioProject
 
 
 class CompanyProfileSerializer(serializers.ModelSerializer):
@@ -43,3 +43,19 @@ class FAQSerializer(serializers.ModelSerializer):
     class Meta:
         model = FAQ
         fields = ["id", "question", "answer", "order", "is_visible"]
+
+
+class PortfolioProjectSerializer(serializers.ModelSerializer):
+    image_url = serializers.URLField(
+        allow_blank=True, required=False, default="",
+        validators=[],
+    )
+
+    class Meta:
+        model = PortfolioProject
+        fields = ["id", "title", "city", "style", "image_url", "is_visible", "order"]
+
+    def validate_image_url(self, value):
+        if value and not value.startswith(("http://", "https://")):
+            raise serializers.ValidationError("Image URL must be a valid http/https URL.")
+        return value

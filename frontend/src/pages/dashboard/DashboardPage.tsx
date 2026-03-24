@@ -5,20 +5,50 @@ import { useAuth } from '../../context/AuthContext';
 import { estimatesApi } from '../../api/estimates.api';
 import { formatINR } from '../../utils/formatCurrency';
 import { ROOM_TYPES, STATUS_COLORS } from '../../utils/constants';
+import UserAvatar from '../../components/common/UserAvatar';
 import type { EstimationRecord } from '../../types';
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const { user, updateProfile } = useAuth();
   const [estimates, setEstimates] = useState<EstimationRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
+  // Profile edit state
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [editName, setEditName] = useState(user?.name || '');
+  const [editPhone, setEditPhone] = useState(user?.phone || '');
+  const [editCity, setEditCity] = useState(user?.city || '');
+  const [saveMsg, setSaveMsg] = useState('');
+
   useEffect(() => {
     estimatesApi.getMine()
-      .then(r => setEstimates(Array.isArray(r.data) ? r.data : r.data.results || []))
+      .then(r => setEstimates(Array.isArray(r.data) ? r.data : (r.data as any).results || []))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  const startEdit = () => {
+    setEditName(user?.name || '');
+    setEditPhone(user?.phone || '');
+    setEditCity(user?.city || '');
+    setSaveMsg('');
+    setEditing(true);
+  };
+
+  const handleSaveProfile = async () => {
+    setSaving(true);
+    try {
+      await updateProfile({ name: editName, phone: editPhone, city: editCity });
+      setSaveMsg('Profile updated!');
+      setEditing(false);
+    } catch {
+      setSaveMsg('Failed to save. Try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this estimate?')) return;
@@ -28,19 +58,119 @@ export default function DashboardPage() {
 
   const totalValue = estimates.reduce((sum, e) => sum + Number(e.grand_total), 0);
 
+  if (!user) return null;
+
   return (
     <>
       <Helmet><title>Dashboard — Home Interior</title></Helmet>
       <div className="max-w-7xl mx-auto py-28 px-4 sm:px-8">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
-          <div>
-            <h1 className="font-headline text-3xl font-extrabold text-on-surface">Welcome, {user?.name}</h1>
-            <p className="text-sm text-secondary mt-1">Manage and track your interior design estimates</p>
+
+        {/* Profile Card */}
+        <div className="bg-surface-container-lowest rounded-3xl p-6 sm:p-8 shadow-sm mb-8">
+          <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
+            {/* Avatar */}
+            <div className="flex flex-col items-center gap-2">
+              <UserAvatar
+                userId={user.id}
+                name={user.name}
+                email={user.email}
+                size={80}
+                editable
+              />
+              <p className="text-[10px] text-secondary text-center">Click to change</p>
+            </div>
+
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+              {!editing ? (
+                <>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <h2 className="font-headline text-2xl font-extrabold text-on-surface">{user.name}</h2>
+                    <span className={`text-[11px] font-bold px-3 py-1 rounded-full ${
+                      user.role === 'admin' ? 'bg-primary/10 text-primary'
+                      : user.role === 'staff' ? 'bg-tertiary/10 text-tertiary'
+                      : 'bg-secondary-container text-secondary'
+                    }`}>
+                      {user.role}
+                    </span>
+                    {!user.is_active && (
+                      <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-error-container text-error">Inactive</span>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-2 mt-4">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-widest text-secondary font-bold">Email</p>
+                      <p className="text-sm text-on-surface mt-0.5 truncate">{user.email}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase tracking-widest text-secondary font-bold">Phone</p>
+                      <p className="text-sm text-on-surface mt-0.5">{user.phone || '—'}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase tracking-widest text-secondary font-bold">City</p>
+                      <p className="text-sm text-on-surface mt-0.5">{user.city || '—'}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase tracking-widest text-secondary font-bold">Member Since</p>
+                      <p className="text-sm text-on-surface mt-0.5">{new Date(user.date_joined).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })}</p>
+                    </div>
+                    {user.last_login && (
+                      <div>
+                        <p className="text-[10px] uppercase tracking-widest text-secondary font-bold">Last Login</p>
+                        <p className="text-sm text-on-surface mt-0.5">{new Date(user.last_login).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {saveMsg && <p className="text-xs text-primary mt-3 font-semibold">{saveMsg}</p>}
+
+                  <button onClick={startEdit}
+                    className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline">
+                    <span className="material-symbols-outlined text-base">edit</span> Edit Profile
+                  </button>
+                </>
+              ) : (
+                <div className="space-y-4 max-w-lg">
+                  <p className="font-headline text-lg font-bold text-on-surface">Edit Profile</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="text-xs font-bold text-secondary uppercase tracking-widest block mb-1">Name</label>
+                      <input value={editName} onChange={e => setEditName(e.target.value)}
+                        className="w-full px-4 py-2.5 bg-surface-container-low rounded-xl text-sm border-none outline-none focus:ring-2 focus:ring-primary/20" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-secondary uppercase tracking-widest block mb-1">Phone</label>
+                      <input value={editPhone} onChange={e => setEditPhone(e.target.value)}
+                        className="w-full px-4 py-2.5 bg-surface-container-low rounded-xl text-sm border-none outline-none focus:ring-2 focus:ring-primary/20" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-secondary uppercase tracking-widest block mb-1">City</label>
+                      <input value={editCity} onChange={e => setEditCity(e.target.value)}
+                        className="w-full px-4 py-2.5 bg-surface-container-low rounded-xl text-sm border-none outline-none focus:ring-2 focus:ring-primary/20" />
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <button onClick={handleSaveProfile} disabled={saving}
+                      className="bg-primary text-white px-5 py-2 rounded-xl text-sm font-semibold disabled:opacity-50 hover:bg-primary/90 transition-colors">
+                      {saving ? 'Saving...' : 'Save Changes'}
+                    </button>
+                    <button onClick={() => setEditing(false)}
+                      className="px-5 py-2 rounded-xl text-sm font-semibold text-secondary bg-surface-container-low hover:bg-surface-container-high transition-colors">
+                      Cancel
+                    </button>
+                  </div>
+                  {saveMsg && <p className="text-xs text-error font-semibold">{saveMsg}</p>}
+                </div>
+              )}
+            </div>
+
+            {/* New estimate CTA */}
+            <Link to="/estimate"
+              className="flex-shrink-0 bg-primary-container text-on-primary px-5 py-2.5 rounded-xl font-semibold text-sm inline-flex items-center gap-2 hover:bg-primary shadow-lg shadow-blue-500/10">
+              <span className="material-symbols-outlined text-lg">add</span> New Estimate
+            </Link>
           </div>
-          <Link to="/estimate" className="bg-primary-container text-on-primary px-6 py-2.5 rounded-xl font-semibold text-sm inline-flex items-center gap-2 hover:bg-primary shadow-lg shadow-blue-500/10">
-            <span className="material-symbols-outlined text-lg">add</span> New Estimate
-          </Link>
         </div>
 
         {/* Summary Cards */}
@@ -55,9 +185,10 @@ export default function DashboardPage() {
             <h3 className="text-3xl font-headline font-extrabold text-on-surface mt-1">{estimates.length}</h3>
           </div>
           <div className="bg-surface-container-highest p-6 rounded-3xl">
-            <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Account</p>
-            <p className="text-sm font-medium text-on-surface mt-3">{user?.email}</p>
-            <p className="text-xs text-secondary mt-1">{user?.city || 'No city set'}</p>
+            <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Avg. Estimate</p>
+            <h3 className="text-3xl font-headline font-extrabold text-on-surface mt-1">
+              {estimates.length ? formatINR(totalValue / estimates.length) : '—'}
+            </h3>
           </div>
         </div>
 
@@ -91,7 +222,7 @@ export default function DashboardPage() {
                     const sc = STATUS_COLORS[est.status] || STATUS_COLORS.draft;
                     return (
                       <>
-                        <tr key={est.id} className="hover:bg-surface-container-low/30 transition-colors group cursor-pointer" onClick={() => setExpandedId(expandedId === est.id ? null : est.id)}>
+                        <tr key={est.id} className="hover:bg-surface-container-low/30 transition-colors cursor-pointer" onClick={() => setExpandedId(expandedId === est.id ? null : est.id)}>
                           <td className="px-6 py-5">
                             <p className="font-bold text-on-surface text-sm">{est.property_type} — {est.tier}</p>
                             <p className="text-[11px] text-secondary">{est.style?.replace(/_/g, ' ') || 'No style'}</p>
